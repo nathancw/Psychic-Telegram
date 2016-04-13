@@ -20,7 +20,7 @@ public class Customer {
 				System.out.println("Outputting order to the server.");
 				DataOutputStream dOut = new DataOutputStream(serverSocket.getOutputStream());
 				//BufferedReader brOut = new BufferedReader(new OutputStream(serverSocket.getOutputStream()));
-				dOut.writeInt(3);
+				dOut.writeInt(2);
 				String orderValues = "Order: Chicken!!!!!!!!!!!!!!!!!!!!!!";
 				dOut.writeUTF(orderValues);
 				

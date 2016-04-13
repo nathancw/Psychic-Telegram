@@ -50,10 +50,10 @@ public class Server {
                 serverThreads[count] = new ServerThread(this,socket);
                 serverThreads[count].setNumber(num);
                 serverThreads[count].start();
-                
+                System.out.println("serverThreads[" + count  +"] created" );
                 //Open the input stream and read in which type it is
-              
-               
+                
+                	
                 
                count++;
             } catch (IOException e) {
@@ -66,7 +66,7 @@ public class Server {
     
     public void handle(String str){
     	serverThreads[1].send("Hello from Server");
-    	if(str.charAt(0) == 'O'){
+    	if(true){
     		System.out.println("Sending the order to the chef.");
     		serverThreads[0].send(str);
     		
