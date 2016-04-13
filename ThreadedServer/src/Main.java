@@ -2,11 +2,12 @@
 public class Main {
 
 	 public static void main(String args[]) {
-		 
-		 Server server = new Server();
-		 Customer cust = new Customer();
-		 
-		 
+	    	
+	        //Run all the clients because its hilarious and easy
+	        Chef chef = new Chef();
+	        Waiter wait = new Waiter();
+	        Customer cust = new Customer();
+	        ///////////////////////////////////////////////////////////
 	 }
 	
 }

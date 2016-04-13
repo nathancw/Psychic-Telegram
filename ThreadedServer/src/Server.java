@@ -12,80 +12,117 @@ import java.net.Socket;
 public class Server {
 
     static final int PORT = 4921;
-    static Socket[] serverConnections = new Socket[4];
+    ServerSocket serverSocket;
+    Socket socket;
+    ServerThread serverThreads[];
+    		
     public static void main(String args[]) {
-        ServerSocket serverSocket = null;
-        Socket socket = null;
+    	Server server = new Server();
+    }
+    
+  
+    public Server() {
+        serverSocket = null;
+        socket = null;
 
+        //Mention the amount of threads we want
+        serverThreads = new ServerThread[4];
+        
         try {
             serverSocket = new ServerSocket(PORT);
-            System.out.println("Waiting for connection.");
+            System.out.println("Waiting for connection. - Server");
         } catch (IOException e) {
             e.printStackTrace();
 
         }
-        
-        //Run all the clients because its hilarious and easy
-        Chef chef = new Chef();
-        Waiter wait = new Waiter();
-        Customer cust = new Customer();
-        ///////////////////////////////////////////////////////////
-        
-        
+             
         int count = 0;
+        DataInputStream din;
         while (true) {
             try {
-                socket = serverSocket.accept();
-               System.out.println("Connection received from " + serverSocket.getInetAddress().getHostName() + ".");
-               serverConnections[count] = socket;
+            	//Accept the connection
+                socket = serverSocket.accept();   
+                
+                din = new DataInputStream(socket.getInputStream());
+                int num = din.readInt();
+                System.out.println("Connection received from " + serverSocket.getInetAddress().getHostName() + ". and value recieved was: " + num);
+                //Create the new thread
+                serverThreads[count] = new ServerThread(this,socket);
+                serverThreads[count].setNumber(num);
+                serverThreads[count].start();
+                
+                //Open the input stream and read in which type it is
+              
+               
+                
                count++;
             } catch (IOException e) {
                 System.out.println("I/O error: " + e);
+                e.printStackTrace();
             }
-            // new threa for a client
-            new ServerThread(socket,count).start();
+         
         }
+    }
+    
+    public void handle(String str){
+    	serverThreads[1].send("Hello from Server");
+    	if(str.charAt(0) == 'O'){
+    		System.out.println("Sending the order to the chef.");
+    		serverThreads[0].send(str);
+    		
+    	}
+    	
     }
     
 
 }
 
 class ServerThread extends Thread {
+	
     protected Socket socket;
     protected int number;
-    public ServerThread(Socket clientSocket, int num) {
+    DataOutputStream out;
+    DataInputStream din;
+    Server server;
+    
+    public ServerThread(Server serv, Socket clientSocket) {
         this.socket = clientSocket;
-        this.number = num;
+        this.server = serv;
+        number = 1234567;
+
+        try {
+			din = new DataInputStream(socket.getInputStream());
+			out = new DataOutputStream(socket.getOutputStream());
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
     }
 
-    public void run() {
-        InputStream inp = null;
-        BufferedReader brinp = null;
-        DataOutputStream out = null;
-        DataInputStream din = null;
-        try {
-            inp = socket.getInputStream();
-            brinp = new BufferedReader(new InputStreamReader(inp));
-            din = new DataInputStream(socket.getInputStream());
-            out = new DataOutputStream(socket.getOutputStream());
-        } catch (IOException e) {
-            return;
-        }
+    public void send(String str) {
+		try {
+			out.writeUTF(str);
+			out.flush();
+		} catch (IOException e) {
+
+			e.printStackTrace();
+		}
+		
+	}
+
+	public void run() {
+  
         String order;
         String orderValues;
-        
+        System.out.println("Running thread: " + number);
         try {
 			while (din.available() > 0 ) {
 			    try {
-			
-			    	order= din.readUTF();
+			    	
 			    	orderValues = din.readUTF();
 			    	
-			        System.out.println("Read line: " + orderValues);
-			        if(number == 2 && order.equals("Order")){
-			    	   //Zero is chef, 2 is customer, and 1 is Waiter. So send the chef the order
-			        	//out = new DataOutputStream(serverConnections[0].getOuputStream());
-			        }
+			        System.out.println("Read line: " + orderValues + " inside thread: " + number);
+			        server.handle(orderValues);
+			        out.writeUTF(orderValues);
 			        
 			    } catch (IOException e) {
 			        e.printStackTrace();
@@ -96,5 +133,15 @@ class ServerThread extends Thread {
 			e.printStackTrace();
 		}
         
+    }
+    
+    public DataOutputStream getOutputStream(){
+    	return out;
+    }
+    public DataInputStream getInputStream(){
+    	return din;
+    }
+    public void setNumber(int num){
+    	this.number = num;
     }
 }
