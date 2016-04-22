@@ -69,7 +69,7 @@ public class Server {
     	}
     	
     	else if(str.charAt(0)== 'T'){
-    		System.out.println("Sending the order to chef and table to waiter.");
+    		System.out.println("\nSending the order to chef and table to waiter.");
     		serverThreads[0].send(str);
     		
     		serverThreads[1].send(str.substring(0,8));
@@ -102,7 +102,7 @@ class ServerThread extends Thread {
     }
 
     public void send(String str) {
-		System.out.println("Sending: " + str + " to: " + out);
+		
 		out.println(str);
 		out.flush();
 		
