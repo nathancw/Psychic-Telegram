@@ -5,6 +5,7 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -37,24 +38,21 @@ public class Server {
         }
              
         int count = 0;
-        DataInputStream din;
+        BufferedReader in;
         while (true) {
             try {
             	//Accept the connection
                 socket = serverSocket.accept();   
                 
-                din = new DataInputStream(socket.getInputStream());
-                int num = din.readInt();
+                in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                int num = Integer.parseInt(in.readLine());
                 System.out.println("Connection received from " + serverSocket.getInetAddress().getHostName() + ". and value recieved was: " + num);
                 //Create the new thread
                 serverThreads[count] = new ServerThread(this,socket);
                 serverThreads[count].setNumber(num);
                 serverThreads[count].start();
                 System.out.println("serverThreads[" + count  +"] created" );
-                //Open the input stream and read in which type it is
-                
-                	
-                
+                     
                count++;
             } catch (IOException e) {
                 System.out.println("I/O error: " + e);
@@ -65,11 +63,16 @@ public class Server {
     }
     
     public void handle(String str){
-    	serverThreads[1].send("Hello from Server");
-    	if(true){
-    		System.out.println("Sending the order to the chef.");
+    	if(str.charAt(0) == 'W'){
+    		serverThreads[1].send(str);
+    		serverThreads[1].send("Exit");
+    	}
+    	
+    	else if(str.charAt(0)== 'T'){
+    		System.out.println("Sending the order to chef and table to waiter.");
     		serverThreads[0].send(str);
     		
+    		serverThreads[1].send(str.substring(0,8));
     	}
     	
     }
@@ -81,9 +84,9 @@ class ServerThread extends Thread {
 	
     protected Socket socket;
     protected int number;
-    DataOutputStream out;
-    DataInputStream din;
-    Server server;
+    PrintWriter out;
+	BufferedReader in;
+	Server server;
     
     public ServerThread(Server serv, Socket clientSocket) {
         this.socket = clientSocket;
@@ -91,43 +94,32 @@ class ServerThread extends Thread {
         number = 1234567;
 
         try {
-			din = new DataInputStream(socket.getInputStream());
-			out = new DataOutputStream(socket.getOutputStream());
+        	in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+			out = new PrintWriter(socket.getOutputStream());
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
     }
 
     public void send(String str) {
-		try {
-			out.writeUTF(str);
-			out.flush();
-		} catch (IOException e) {
-
-			e.printStackTrace();
-		}
+		System.out.println("Sending: " + str + " to: " + out);
+		out.println(str);
+		out.flush();
 		
 	}
 
 	public void run() {
   
-        String order;
-        String orderValues;
+        String line;
+     
         System.out.println("Running thread: " + number);
         try {
-			while (din.available() > 0 ) {
-			    try {
-			    	
-			    	orderValues = din.readUTF();
-			    	
-			        System.out.println("Read line: " + orderValues + " inside thread: " + number);
-			        server.handle(orderValues);
-			        out.writeUTF(orderValues);
-			        
-			    } catch (IOException e) {
-			        e.printStackTrace();
-			        return;
-			    }
+			while (((line = in.readLine()) != null)) {
+
+			        System.out.println("Server read: " + line + " inside thread: " + number);
+			        server.handle(line);
+
+			
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -135,11 +127,11 @@ class ServerThread extends Thread {
         
     }
     
-    public DataOutputStream getOutputStream(){
+    public PrintWriter getOutputStream(){
     	return out;
     }
-    public DataInputStream getInputStream(){
-    	return din;
+    public BufferedReader getInputStream(){
+    	return in;
     }
     public void setNumber(int num){
     	this.number = num;
