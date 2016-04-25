@@ -25,7 +25,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.JTextArea;
 
 
-public class WaiterFrame {
+public class ChefFrame {
 
 	private JPanel contentPane;
 	private JTextField ordertextField;
@@ -35,7 +35,7 @@ public class WaiterFrame {
 	BufferedReader in;
 	PrintWriter out;
 	//private WaiterThread waiter;
-	private WaiterFrame frame;
+	private ChefFrame frame;
 	static JTextArea textArea;
 
 	/**
@@ -45,26 +45,26 @@ public class WaiterFrame {
 
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {	
-				WaiterFrame frame;
-				frame = new WaiterFrame();
+				ChefFrame frame;
+				frame = new ChefFrame();
 			}
 		});	     
 		
-		WaiterThread waiter = new WaiterThread();
-		waiter.start();
+		ChefThread chef = new ChefThread();
+		chef.start();
 				
 	}
 
 	/**
 	 * Create the frame.
 	 */
-	public WaiterFrame(){
+	public ChefFrame(){
 		
 	
 		
 		JFrame frame = new JFrame();
 		frame.setVisible(true);
-		frame.setTitle("Waiter Frame");
+		frame.setTitle("Chef Frame");
 		
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setBounds(100, 100, 607, 387);
@@ -77,7 +77,7 @@ public class WaiterFrame {
 		contentPane.add(panel_1);
 		panel_1.setLayout(new BorderLayout(0, 0));
 		
-		JLabel lblNewLabel = new JLabel("Waiter Program");
+		JLabel lblNewLabel = new JLabel("Chef Program");
 		lblNewLabel.setHorizontalAlignment(SwingConstants.CENTER);
 		panel_1.add(lblNewLabel, BorderLayout.NORTH);
 		
@@ -116,9 +116,9 @@ public class WaiterFrame {
 			public void actionPerformed(ActionEvent arg0) {
 				
 				//Make the total order to send
-				String totalOrder = "Waiter. Order Ready Number:"+ ordertextField.getText();
+				String totalOrder = "Chef. Order Ready Number:"+ ordertextField.getText();
 				
-				WaiterThread.sendOrder(totalOrder);
+				ChefThread.sendOrder(totalOrder);
 				
 				JOptionPane.showMessageDialog(new JFrame(), "Order Number Ready Submitted");
 				
@@ -133,8 +133,9 @@ public class WaiterFrame {
 	}
 }
 
-class WaiterThread extends Thread {
+class ChefThread extends Thread {
 
+	
 	 //WaiterFrame frame;
 	 static final int PORT = 4921;
 	 DataInputStream din;
@@ -142,7 +143,7 @@ class WaiterThread extends Thread {
 	 BufferedReader in;
 	 static PrintWriter out;
 	 
-	 public WaiterThread(){
+	 public ChefThread(){
 		 
 		 //this.frame= frame;
 		 
@@ -153,7 +154,8 @@ class WaiterThread extends Thread {
 			
 			System.out.println("Connected to localhost in port 4921 - Waiter");
 			out = new PrintWriter(serverSocket.getOutputStream(),true);
-			out.println("Waiter");
+			out.println("Chef");
+		
 			
 			
 		} catch (UnknownHostException e) {
@@ -170,13 +172,11 @@ class WaiterThread extends Thread {
 	 public void run(){
 		 
 		 try {
-
-			String readLine; 
-			while(!((readLine = waitForServerResponse()).equals("Exit"))){				
-				System.out.println("Chef read: " + readLine);
-				WaiterFrame.updateLabel(readLine);
-			}
-		
+			 String readLine; 
+				while(!((readLine = waitForServerResponse()).equals("Exit"))){				
+					System.out.println("Chef read: " + readLine);
+					ChefFrame.updateLabel(readLine);
+				}
 			
 		} catch (IOException e) {
 			e.printStackTrace();

@@ -67,22 +67,28 @@ public class Server {
     
     public void handle(String str){
     	
-    	//Waiter 
-    	if(str.charAt(0) == 'W'){
-    		serverThreads[1].send(str);
-    		serverThreads[1].send("Exit");
+    	//order number is  ready so we sent ot waiter
+    	if(str.charAt(1) == 'h'){
+    		for(int x = 0 ; x < serverThreads.length; x++){
+
+    			if(serverThreads[x] != null){
+	    			if(serverThreads[x].getType().equals("Waiter")){
+	    				serverThreads[x].send("Order READY Number: " + orderNumber + " " +str);
+	    			}
+	    			
+	    		}
+    		}
     	}
     	//Its a customer order, send to waiter
-    	else if(str.charAt(0)== 'C'){
+    	else if(str.charAt(1)== 'u'){
     		
-    		orderNumber = orderNumber++;
+    		orderNumber++;
     		
     		for(int x = 0 ; x < serverThreads.length; x++){
-    			
-    			System.out.println(serverThreads[x]);
+
     			if(serverThreads[x] != null){
 	    			if(serverThreads[x].getType().equals("Chef") || serverThreads[x].getType().equals("Waiter")){
-	    				System.out.println("\nSending the order to chef and table to waiter.");
+	    
 	    				serverThreads[x].send("Order Number: " + orderNumber + " " +str);
 	    			}
 	    			
@@ -118,7 +124,7 @@ class ServerThread extends Thread {
 
     public void send(String str) {
 		
-    	System.out.println("Inside the send method for " + this.type);
+    	
 		out.println(str);
 		out.flush();
 		System.out.println("Done sending message in " + this.type);
