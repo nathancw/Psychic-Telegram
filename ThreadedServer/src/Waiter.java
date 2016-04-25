@@ -31,7 +31,7 @@ public class Waiter {
 			
 			System.out.println("Connected to localhost in port 4921 - Waiter");
 			PrintWriter out = new PrintWriter(serverSocket.getOutputStream(),true);
-			out.println(1);
+			out.println("Waiter");
 			
 			//Loop through
 			String readLine;

@@ -16,6 +16,7 @@ public class Server {
     ServerSocket serverSocket;
     Socket socket;
     ServerThread serverThreads[];
+    int orderNumber;
     		
     public static void main(String args[]) {
     	Server server = new Server();
@@ -23,6 +24,7 @@ public class Server {
     
   
     public Server() {
+    	orderNumber = 0;
         serverSocket = null;
         socket = null;
 
@@ -45,11 +47,12 @@ public class Server {
                 socket = serverSocket.accept();   
                 
                 in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                int num = Integer.parseInt(in.readLine());
-                System.out.println("Connection received from " + serverSocket.getInetAddress().getHostName() + ". and value recieved was: " + num);
+                
+                //Server type determines if its a chef or whatever. It just simply says Chef.
+                String type = in.readLine();
+                System.out.println("Connection received from " + serverSocket.getInetAddress().getHostName() + ". and type: + " + type);
                 //Create the new thread
-                serverThreads[count] = new ServerThread(this,socket);
-                serverThreads[count].setNumber(num);
+                serverThreads[count] = new ServerThread(this,socket,type);
                 serverThreads[count].start();
                 System.out.println("serverThreads[" + count  +"] created" );
                      
@@ -63,16 +66,28 @@ public class Server {
     }
     
     public void handle(String str){
+    	
+    	//Waiter 
     	if(str.charAt(0) == 'W'){
     		serverThreads[1].send(str);
     		serverThreads[1].send("Exit");
     	}
-    	
-    	else if(str.charAt(0)== 'T'){
-    		System.out.println("\nSending the order to chef and table to waiter.");
-    		serverThreads[0].send(str);
+    	//Its a customer order, send to waiter
+    	else if(str.charAt(0)== 'C'){
     		
-    		serverThreads[1].send(str.substring(0,8));
+    		orderNumber = orderNumber++;
+    		
+    		for(int x = 0 ; x < serverThreads.length; x++){
+    			
+    			System.out.println(serverThreads[x]);
+    			if(serverThreads[x] != null){
+	    			if(serverThreads[x].getType().equals("Chef") || serverThreads[x].getType().equals("Waiter")){
+	    				System.out.println("\nSending the order to chef and table to waiter.");
+	    				serverThreads[x].send("Order Number: " + orderNumber + " " +str);
+	    			}
+	    			
+	    		}
+    		}
     	}
     	
     }
@@ -83,15 +98,15 @@ public class Server {
 class ServerThread extends Thread {
 	
     protected Socket socket;
-    protected int number;
     PrintWriter out;
 	BufferedReader in;
 	Server server;
+	String type;
     
-    public ServerThread(Server serv, Socket clientSocket) {
+    public ServerThread(Server serv, Socket clientSocket, String type) {
         this.socket = clientSocket;
         this.server = serv;
-        number = 1234567;
+        this.type = type;
 
         try {
         	in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -103,20 +118,21 @@ class ServerThread extends Thread {
 
     public void send(String str) {
 		
+    	System.out.println("Inside the send method for " + this.type);
 		out.println(str);
 		out.flush();
-		
+		System.out.println("Done sending message in " + this.type);
 	}
 
 	public void run() {
   
         String line;
      
-        System.out.println("Running thread: " + number);
+        System.out.println("Running thread: " + type);
         try {
 			while (((line = in.readLine()) != null)) {
 
-			        System.out.println("Server read: " + line + " inside thread: " + number);
+			        System.out.println("Server read: " + line + " inside thread: " + type);
 			        server.handle(line);
 
 			
@@ -133,7 +149,7 @@ class ServerThread extends Thread {
     public BufferedReader getInputStream(){
     	return in;
     }
-    public void setNumber(int num){
-    	this.number = num;
+    public String getType(){
+	  return type;
     }
 }

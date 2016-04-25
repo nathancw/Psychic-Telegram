@@ -28,7 +28,7 @@ public class Chef {
 
 			System.out.println("Connected to localhost in port 4921 - Chef");
 			out = new PrintWriter(serverSocket.getOutputStream(),true);
-			out.println(0);
+			out.println("Chef");
 			
 			in = new BufferedReader(new InputStreamReader(serverSocket.getInputStream()));
 			
