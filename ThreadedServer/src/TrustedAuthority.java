@@ -16,7 +16,7 @@ import javax.crypto.SecretKey;
 
 public class TrustedAuthority {
 
-    final int PORT = 4921;
+    final int PORT = 9090	;
     ServerSocket serverSocket;
     Socket socket;
     int orderNumber;

@@ -22,8 +22,11 @@ import javax.crypto.spec.SecretKeySpec;
 
 
 public class User {
-	  Socket serverSocket;
-	  static final int PORT = 4921;
+	  Socket aggregatorSocket;
+	  static final int PORTagg = 4921;
+	  final int portTrusted = 9090;
+	  Socket trustedSocket;
+	  
 	  int delta = 123456;
 	  DataInputStream in;
 	  byte[] secretKey;
@@ -40,12 +43,12 @@ public class User {
 		  
 		  Random rand = new Random(delta);
 		  value = rand.nextInt();
-			  
+		  System.out.println("User generated value: " + value);
 		  try {
-			  
-				serverSocket = new Socket("localhost",PORT);
 				
-				in= new DataInputStream(serverSocket.getInputStream());
+				trustedSocket = new Socket("192.252.76.94",portTrusted);
+				
+				in= new DataInputStream(trustedSocket.getInputStream());
 				
 				System.out.println("Connected to localhost in port 4921 - User");
 				
@@ -66,7 +69,7 @@ public class User {
 				
 				System.out.println("hmac result: " + hmacResult);
 				
-				//Change hmacresult ot double so we can mod?
+				//Change hmacresult to double so we can mod?
 				//BigInteger HMAC = new BigInteger(hmacResult);
 				double HMAC = ByteBuffer.wrap(hmacResult).getDouble();
 				
@@ -75,16 +78,21 @@ public class User {
 				
 				System.out.println("User key: " + userKey);
 				
-				SecretKeySpec userSecretKey = new SecretKeySpec(ByteBuffer.allocate(8).putDouble(userKey).array(),"AES/ECB/NoPadding");
+				SecretKeySpec userSecretKey = new SecretKeySpec(ByteBuffer.allocate(16).putDouble(userKey).array(),"AES");
 				
 				System.out.println(userSecretKey);
 				
-				Cipher AESencrypt = Cipher.getInstance("AES/ECB/NoPadding");
+				Cipher AESencrypt = Cipher.getInstance("AES");
 				AESencrypt.init(Cipher.ENCRYPT_MODE, userSecretKey);
 				
+			
 				byte[] cipherText = AESencrypt.doFinal(ByteBuffer.allocate(4).putInt(value).array());
 				
-				DataOutputStream out = new DataOutputStream(serverSocket.getOutputStream());
+				//Connect to the aggregator and send the ciphertext
+				//192.252.76.94 "10.74.32.3"
+				aggregatorSocket = new Socket("localhost",PORTagg);
+				
+				DataOutputStream out = new DataOutputStream(aggregatorSocket.getOutputStream());
 				out.writeInt(cipherText.length);
 				out.write(cipherText);
 				
